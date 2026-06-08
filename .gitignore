@@ -1,0 +1,29 @@
+# 개인정보 및 민감 정보
+.env
+.env.*
+secrets.*
+*-local.php
+wp-config.php
+*.key
+*.pem
+
+# 로그
+*.log
+logs/
+
+# 의존성
+/vendor/
+node_modules/
+
+# 빌드 산출물
+/dist/
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
