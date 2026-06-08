@@ -84,7 +84,7 @@ class EmailTemplate {
 
         <!-- 본문: 이미지/테이블은 풀폭, 텍스트는 요소별 인라인 패딩 -->
         <tr>
-          <td style="padding:0 0 40px 0;font-size:16px;line-height:1.7;color:#374151;">
+          <td style="padding:0 0 40px 0;font-size:17px;line-height:1.9;color:#374151;">
             {$body}
           </td>
         </tr>

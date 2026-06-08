@@ -17,10 +17,12 @@ class ContentSanitizer {
         'a'          => ['href' => [], 'style' => [], 'target' => [], 'rel' => []],
         'img'        => ['src' => [], 'alt' => [], 'style' => [], 'width' => [], 'height' => []],
         'blockquote' => ['style' => []],
-        'strong'     => [],
-        'b'          => [],
+        'strong'     => ['style' => []],
+        'b'          => ['style' => []],
         'em'         => [],
         'i'          => [],
+        'u'          => [],
+        'span'       => ['style' => []],
         'br'         => [],
         'hr'         => ['style' => []],
         'figure'     => ['style' => []],
@@ -39,22 +41,32 @@ class ContentSanitizer {
         // 1. 블록 에디터 주석 제거 (<!-- wp:paragraph --> 등)
         $html = preg_replace('/<!--\s*\/?wp:[^>]*-->/s', '', $rawHtml);
 
-        // 2. the_content 필터 적용 (shortcode 처리 등)
+        // 2. custom-highlight 클래스 → 인라인 배경색으로 변환 (이메일은 CSS 클래스 무효)
+        $html = preg_replace(
+            '/<span[^>]*\bclass="[^"]*\bcustom-highlight\b[^"]*"[^>]*>/i',
+            '<span style="background-color:#fef08a;padding:0 2px;">',
+            $html
+        );
+
+        // 3. the_content 필터 적용 (shortcode 처리 등)
         $html = apply_filters('the_content', $html);
 
-        // 3. 허용 태그 화이트리스트 적용 (wp-block-* class 등 자동 제거)
+        // 4. 허용 태그 화이트리스트 적용 (wp-block-* class 등 자동 제거)
         $html = wp_kses($html, self::ALLOWED_TAGS);
 
-        // 4. 텍스트 요소에 좌우 패딩 추가
+        // 5. 인라인 포맷 변환: bold 스타일 명시, text-decoration underline → highlight
+        $html = self::processInlineFormatting($html);
+
+        // 6. 텍스트 요소에 좌우 패딩 추가
         $html = self::processTextPadding($html);
 
-        // 5. 이미지 처리: 절대 URL 변환 + 이메일용 인라인 스타일
+        // 7. 이미지 처리: 절대 URL 변환 + 이메일용 인라인 스타일
         $html = self::processImages($html);
 
-        // 6. 테이블 처리: 이메일용 인라인 스타일 강제 적용
+        // 8. 테이블 처리: 이메일용 인라인 스타일 강제 적용
         $html = self::processTables($html);
 
-        // 7. figure 마진 초기화: 이미지 figure는 풀폭, 테이블 figure는 텍스트와 맞춤(좌우 20px)
+        // 9. figure 마진 초기화: 이미지 figure는 풀폭, 테이블 figure는 텍스트와 맞춤(좌우 20px)
         $html = preg_replace_callback(
             '/<figure(\s[^>]*|)>(.*?)<\/figure>/is',
             function (array $m): string {
@@ -65,13 +77,38 @@ class ContentSanitizer {
             $html
         );
 
-        // 8. 링크에 target="_blank" 추가
+        // 10. 링크에 target="_blank" 추가
         $html = preg_replace('/<a\s([^>]*href=[^>]*)>/i', '<a $1 target="_blank" rel="noopener">', $html);
 
-        // 9. 빈 태그 정리
+        // 11. 빈 태그 정리
         $html = preg_replace('/<p[^>]*>\s*<\/p>/i', '', $html);
 
         return trim($html);
+    }
+
+    private static function processInlineFormatting(string $html): string {
+        // strong/b: font-weight 명시 (일부 이메일 클라이언트 호환)
+        $html = preg_replace('/<(strong|b)(\s[^>]*|)>/i', '<$1 style="font-weight:700;">', $html);
+
+        // Gutenberg underline = <span style="text-decoration:underline"> → 노란 형광펜으로 변환
+        $html = preg_replace_callback(
+            '/<span([^>]*)\s+style="([^"]*)"([^>]*)>/i',
+            function (array $m): string {
+                if (!preg_match('/text-decoration\s*:\s*underline/i', $m[2])) {
+                    return $m[0];
+                }
+                $style = preg_replace('/text-decoration\s*:\s*underline\s*;?\s*/i', '', $m[2]);
+                $style .= 'background-color:#fef08a;padding:0 2px;';
+                return '<span' . $m[1] . ' style="' . trim($style, '; ') . ';"' . $m[3] . '>';
+            },
+            $html
+        );
+
+        // <u> 태그도 혹시 있으면 동일하게 처리
+        $html = preg_replace('/<u(\s[^>]*|)>/i', '<span style="background-color:#fef08a;padding:0 2px;">', $html);
+        $html = str_replace('</u>', '</span>', $html);
+
+        return $html;
     }
 
     private static function processTextPadding(string $html): string {
