@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build plugin zip
+        run: |
+          PLUGIN_SLUG="fluent-post-newsletter"
+          ZIP_NAME="${PLUGIN_SLUG}.zip"
+
+          mkdir -p /tmp/${PLUGIN_SLUG}
+
+          rsync -r \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='tests' \
+            --exclude='CLAUDE.md' \
+            --exclude='PROJECT.md' \
+            --exclude='.gitignore' \
+            --exclude='*.zip' \
+            . /tmp/${PLUGIN_SLUG}/
+
+          cd /tmp
+          zip -r ${ZIP_NAME} ${PLUGIN_SLUG}/
+
+          echo "ZIP_PATH=/tmp/${ZIP_NAME}" >> $GITHUB_ENV
+          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
+
+      - name: Upload zip to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_PATH }}
