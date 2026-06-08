@@ -1,4 +1,4 @@
-# Fluent Post Newsletter — Claude 작업 지침
+# CLAUDE.md — Fluent Post Newsletter
 
 ## 프로젝트
 
@@ -9,66 +9,86 @@
 
 - PHP 8.2 / WordPress 7.0 / Gutenberg 블록 에디터
 - 의존: FluentCRM (필수), FluentSMTP
-- 배포: GitHub 릴리즈 + 자동 업데이트
+- 배포: GitHub 릴리즈 + Plugin Update Checker 자동 업데이트
 
-## 절대 규칙
+---
 
-1. **FluentCRM 리소스 우선** — FluentCRM API/훅/모델/스마트코드 최대 활용. 중복 구현 금지.
-2. **이메일 HTML = 인라인 CSS만** — `<style>` 태그 금지. 모든 스타일은 인라인.
-3. **발송된 캠페인 수정 금지** — `sent`/`processing` 상태 캠페인 업데이트 코드 레벨 차단.
-4. **캠페인 ID 즉시 저장** — 생성 즉시 post_meta에 저장. 예외 없음.
-5. **발신자 정보 = FluentCRM 전역 설정** — 별도 발신자 UI 추가 금지.
+## 개발 5대 원칙
 
-## 개발 원칙
+### 1. 코드는 최대한 간결하게
 
-- **간결함**: 불필요한 코드 없음. 추상화는 3회 이상 반복될 때만.
-- **디버깅 용이**: 클래스 하나에 역할 하나. 책임 명확히 분리.
-- **보안 최우선**: 모든 입력 검증/이스케이프. Nonce 없는 AJAX 요청 불가.
-- **직관적 UI**: 한국어 레이블/메시지. 비개발자도 설명 없이 사용 가능해야 함.
+- **FluentCRM 리소스 우선** — API/훅/모델/스마트코드 최대 활용, 중복 구현 금지
+- 기능 구현에 필요한 최소한의 코드만 작성
+- 추상화는 동일 로직이 3회 이상 반복될 때만
+- 미래를 위한 코드 작성 금지 (지금 필요한 것만)
+- 이메일 HTML = 인라인 CSS만 (`<style>` 태그 금지)
 
-## 보안 체크리스트 (코드 작성 시 매번)
+### 2. 오류를 쉽게 찾을 수 있게
 
-- [ ] 모든 PHP 파일 상단: `defined('ABSPATH') || exit;`
-- [ ] AJAX 핸들러: `check_ajax_referer()` 호출
-- [ ] DB 쿼리: `$wpdb->prepare()` 사용
-- [ ] 출력: `esc_html()`, `esc_attr()`, `esc_url()` 적용
-- [ ] 하드코딩된 URL/IP/비밀번호 없음
+- 클래스 하나 = 역할 하나 (단일 책임 원칙)
+- 실패는 `WP_Error` 또는 `['success'=>false, 'message'=>'구체적 이유']`로 명시 반환
+- 조용한 실패(silent fail) 금지 — 어디서 무엇이 왜 실패했는지 메시지에 포함
+- 발송된 캠페인 수정 시 코드 레벨에서 명확한 오류 반환 (`MODIFIABLE_STATUSES` 체크)
+- 캠페인 ID는 생성 즉시 post_meta에 저장 — 미저장으로 인한 중복 생성 방지
 
-## GitHub 업로드 금지 항목
+### 3. 보안 강화
 
-`.gitignore`에 반드시 포함:
-```
-.env
-*.log
-/vendor/
-wp-config.php
-*-local.php
-.DS_Store
-node_modules/
-```
+- 모든 PHP 파일 상단: `defined('ABSPATH') || exit;`
+- AJAX 핸들러: `check_ajax_referer()` + `current_user_can()` 필수
+- DB 쿼리: `$wpdb->prepare()` 필수
+- 모든 출력: `esc_html()` / `esc_attr()` / `esc_url()` 적용
+- 외부 입력값 전부 `sanitize_*()` 처리 후 사용
+- 하드코딩된 URL/IP/비밀번호/API 키 절대 금지
 
-커밋 전 `git diff --staged`로 개인정보 포함 여부 확인 필수.
+### 4. UI/UX는 직관적으로
+
+- 한국어 레이블/메시지 (비개발자 기준)
+- 버튼 상태 피드백: 처리 중(비활성화) → 성공(녹색) / 실패(빨간색)
+- 발송 후 FluentCRM 캠페인 직접 링크 제공
+- 발송된 캠페인 수정 시도 시 이유를 명확히 안내
+- 태그 없으면 "등록된 태그 없음" 안내 (빈 화면 금지)
+
+### 5. 개인정보 GitHub 업로드 절대 금지
+
+커밋 전 반드시 `git diff --staged` 확인:
+- API 키, 비밀번호, 토큰이 포함되어 있지 않은가
+- 사용자 이메일, 이름, 연락처가 포함되어 있지 않은가
+- wp-config.php, .env 등 설정 파일이 포함되어 있지 않은가
+
+`.gitignore` 필수 항목: `.env`, `*.log`, `/vendor/`, `wp-config.php`, `*-local.php`, `.DS_Store`, `node_modules/`, `*.zip`
+
+---
+
+## 플러그인별 절대 규칙
+
+1. **FluentCRM 리소스 우선** — 발송/추적/수신거부/스케줄/대시보드 전부 FluentCRM에 위임
+2. **발신자 정보 = FluentCRM 전역 설정** — 별도 발신자 UI 추가 금지
+3. **발송된 캠페인 수정 절대 금지** — `sent`/`processing` 상태 = 코드 레벨 차단
+4. **커스텀 DB 테이블 없음** — post_meta만 사용
+
+---
 
 ## 파일 구조
 
 ```
 fluent-post-newsletter/
-├── fluent-post-newsletter.php      # 메인 (의존성 체크, 훅 등록)
+├── fluent-post-newsletter.php      ← 메인 (의존성 체크, 자동업데이트)
 ├── includes/
-│   ├── class-plugin.php            # 부트스트랩
-│   ├── class-meta-box.php          # 포스트 편집 화면 UI
-│   ├── class-campaign-manager.php  # FluentCRM 캠페인 생성/수정
-│   ├── class-email-template.php    # Ghost 스타일 이메일 HTML
-│   └── class-content-sanitizer.php # 블록 HTML → 이메일 안전 HTML
+│   ├── class-plugin.php            ← 부트스트랩
+│   ├── class-meta-box.php          ← 포스트 편집 화면 UI + AJAX
+│   ├── class-campaign-manager.php  ← FluentCRM 캠페인 생성/수정
+│   ├── class-email-template.php    ← Ghost 스타일 이메일 HTML (인라인 CSS)
+│   └── class-content-sanitizer.php ← 블록 HTML → 이메일 안전 HTML
 ├── assets/
-│   ├── js/meta-box.js              # AJAX + UI 인터랙션
-│   └── css/meta-box.css            # 메타박스 스타일
-├── languages/
+│   ├── js/meta-box.js
+│   └── css/meta-box.css
 ├── CLAUDE.md
 └── PROJECT.md
 ```
 
-## 이메일 렌더링 핵심 (최우선 우려사항)
+---
+
+## 이메일 렌더링 핵심 주의사항
 
 블록 에디터 HTML → 이메일 변환 시 반드시 적용:
 - **제거**: `<script>`, `<iframe>`, 블록 주석(`<!-- wp:... -->`), `wp-block-*` class
@@ -80,4 +100,4 @@ fluent-post-newsletter/
 
 - 클래스 사용 전 `class_exists()` 체크 필수
 - 내부 클래스 직접 인스턴스화 최소화 → 공개 훅/API 우선
-- FluentCRM 버전 업데이트 시 이 플러그인도 호환성 테스트 후 업데이트
+- FluentCRM 업데이트 시 호환성 테스트 후 이 플러그인도 업데이트
