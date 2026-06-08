@@ -1,8 +1,4 @@
 /* Fluent Post Newsletter — Meta Box */
-#fpn-meta-box label {
-    cursor: pointer;
-}
-
 #fpn-create-btn:hover:not(:disabled) {
     background: #1e40af !important;
 }
@@ -10,13 +6,4 @@
 #fpn-create-btn:disabled {
     background: #9ca3af !important;
     cursor: not-allowed;
-}
-
-#fpn-tags-list input[type="checkbox"] {
-    vertical-align: middle;
-}
-
-#fpn_scheduled_at {
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
 }
