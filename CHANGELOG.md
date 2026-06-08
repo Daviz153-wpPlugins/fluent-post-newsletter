@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0] - 2026-06-09
+
+### 변경
+- 본문 폰트 16px → 17px, 행간 1.7 → 1.9
+- `<strong>/<b>` 에 `font-weight:700` 인라인 스타일 명시 (이메일 클라이언트 호환성)
+
+### 수정
+- `custom-highlight` CSS 클래스 → `background-color:#fef08a` 인라인 변환 (이메일에서 CSS 클래스 무효)
+- Gutenberg underline(`text-decoration:underline`) → 동일 형광펜으로 변환
+- GitHub 릴리즈 zip 자동 생성 Actions 워크플로우 추가
+
+---
+
 ## [0.2.0] - 2026-06-08
 
 ### 추가
