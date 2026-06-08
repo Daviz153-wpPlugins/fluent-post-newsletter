@@ -1,3 +1,7 @@
+# 내부 개발 문서 (공개 저장소 제외)
+CLAUDE.md
+PROJECT.md
+
 # 개인정보 및 민감 정보
 .env
 .env.*
