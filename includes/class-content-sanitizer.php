@@ -87,8 +87,8 @@ class ContentSanitizer {
     }
 
     private static function processInlineFormatting(string $html): string {
-        // strong/b → span 으로 대체 (이메일 클라이언트의 strong 기본 스타일 의존 제거)
-        $html = preg_replace('/<(?:strong|b)(\s[^>]*|)>/i', '<span style="font-weight:800;">', $html);
+        // strong/b → span 으로 대체, 본문(#374151)과 구별되는 짙은 색 적용
+        $html = preg_replace('/<(?:strong|b)(\s[^>]*|)>/i', '<span style="font-weight:800;color:#111827;">', $html);
         $html = preg_replace('/<\/(?:strong|b)>/i', '</span>', $html);
 
         // Gutenberg underline = <span style="text-decoration:underline"> → 노란 형광펜으로 변환
