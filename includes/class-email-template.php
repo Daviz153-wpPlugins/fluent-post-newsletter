@@ -5,7 +5,7 @@ defined('ABSPATH') || exit;
 
 class EmailTemplate {
 
-    public static function render(int $postId, string $contentType = 'full'): string {
+    public static function render(int $postId): string {
         $post      = get_post($postId);
         $title     = get_the_title($postId);
         $postUrl   = get_permalink($postId);
@@ -18,7 +18,7 @@ class EmailTemplate {
 
         $headerText = $siteDesc ? $siteName . ' | ' . $siteDesc : $siteName;
 
-        $body = self::buildBody($post, $contentType, $postUrl);
+        $body = self::buildBody($post, $postUrl);
 
         $thumbHtml = '';
         if ($thumbUrl) {
@@ -41,14 +41,14 @@ class EmailTemplate {
 
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f6f6f6;">
   <tr>
-    <td align="center" style="padding:24px 16px;">
+    <td align="center" style="padding:16px 0;">
 
       <table width="600" cellpadding="0" cellspacing="0" border="0"
              style="max-width:600px;width:100%;background-color:#ffffff;">
 
         <!-- 헤더: 사이트명 -->
         <tr>
-          <td style="padding:32px 40px 0 40px;text-align:center;">
+          <td style="padding:32px 20px 0 20px;text-align:center;">
             <p style="margin:0;font-size:13px;color:#6b7280;letter-spacing:0.02em;">
               {$headerText}
             </p>
@@ -57,7 +57,7 @@ class EmailTemplate {
 
         <!-- 포스트 제목 -->
         <tr>
-          <td style="padding:20px 40px 8px 40px;text-align:center;">
+          <td style="padding:20px 20px 8px 20px;text-align:center;">
             <h1 style="margin:0;font-size:30px;font-weight:700;line-height:1.35;color:#111827;letter-spacing:-0.01em;">
               {$title}
             </h1>
@@ -66,7 +66,7 @@ class EmailTemplate {
 
         <!-- 작성자 · 날짜 · 브라우저에서 보기 -->
         <tr>
-          <td style="padding:8px 40px 24px 40px;text-align:center;">
+          <td style="padding:8px 20px 24px 20px;text-align:center;">
             <p style="margin:0;font-size:13px;color:#9ca3af;">
               {$authorName} 작성&nbsp;·&nbsp;{$date}
             </p>
@@ -82,16 +82,16 @@ class EmailTemplate {
         <!-- 대표 이미지 -->
         {$thumbHtml}
 
-        <!-- 본문 -->
+        <!-- 본문: 이미지/테이블은 풀폭, 텍스트는 요소별 인라인 패딩 -->
         <tr>
-          <td style="padding:0 40px 40px 40px;font-size:16px;line-height:1.7;color:#374151;">
+          <td style="padding:0 0 40px 0;font-size:16px;line-height:1.7;color:#374151;">
             {$body}
           </td>
         </tr>
 
         <!-- 푸터 -->
         <tr>
-          <td style="padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+          <td style="padding:24px 20px;border-top:1px solid #e5e7eb;text-align:center;">
             <p style="margin:0;font-size:12px;color:#9ca3af;">
               <a href="{{crm.unsubscribe_url}}"
                  style="color:#9ca3af;text-decoration:underline;">
@@ -112,24 +112,7 @@ class EmailTemplate {
 HTML;
     }
 
-    private static function buildBody(\WP_Post $post, string $contentType, string $postUrl): string {
-        if ($contentType === 'excerpt') {
-            $excerpt = $post->post_excerpt
-                ? $post->post_excerpt
-                : wp_trim_words($post->post_content, 60, '...');
-
-            $excerpt = ContentSanitizer::sanitize('<p>' . $excerpt . '</p>');
-
-            return $excerpt
-                . '<p style="margin:24px 0 0 0;text-align:center;">'
-                . '<a href="' . esc_url($postUrl) . '" '
-                . 'style="display:inline-block;padding:12px 28px;background-color:#111827;'
-                . 'color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;'
-                . 'border-radius:4px;" target="_blank" rel="noopener">'
-                . '원문 읽기 →'
-                . '</a></p>';
-        }
-
+    private static function buildBody(\WP_Post $post, string $postUrl): string {
         return ContentSanitizer::sanitize($post->post_content);
     }
 }
