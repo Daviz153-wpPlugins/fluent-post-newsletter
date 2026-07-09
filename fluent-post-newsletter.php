@@ -3,7 +3,7 @@
  * Plugin Name: Fluent Post Newsletter
  * Plugin URI:  https://github.com/Daviz153-wpPlugins/fluent-post-newsletter
  * Description: 워드프레스 포스트를 FluentCRM 이메일 캠페인으로 복제·발송하는 애드온 플러그인
- * Version:     0.3.2
+ * Version:     0.3.3
  * Author:      Daviz153
  * License:     GPL-2.0-or-later
  * Text Domain: fluent-post-newsletter
@@ -13,7 +13,7 @@
 
 defined('ABSPATH') || exit;
 
-define('FPN_VERSION', '0.3.2');
+define('FPN_VERSION', '0.3.3');
 define('FPN_FILE',    __FILE__);
 define('FPN_DIR',     plugin_dir_path(__FILE__));
 define('FPN_URL',     plugin_dir_url(__FILE__));

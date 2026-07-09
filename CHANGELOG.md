@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.3] - 2026-07-09
+
+### 보안
+- AJAX 핸들러 권한 검증 강화: `current_user_can('edit_post', $postId)` + `publish_posts` 체크 추가 — Contributor의 타인 포스트 캠페인 생성/덮어쓰기(IDOR) 차단
+- 이메일 템플릿 HTML 이스케이프 적용: `$title`, `$authorName`, `$postUrl`, `$siteName`, `$siteDesc` 에 `esc_html`/`esc_url` 처리
+- `get_post()` null 체크 추가 — 잘못된 postId 전달 시 Fatal Error 방지
+- 관리자 메타박스 JS: `innerHTML` → DOM API(`createElement` + `textContent`) 로 교체
+
+---
+
 ## [0.3.2] - 2026-06-09
 
 ### 수정
