@@ -119,15 +119,16 @@ class MetaBox {
     public function ajaxCreateCampaign(): void {
         check_ajax_referer('fpn_nonce', 'nonce');
 
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error(['message' => '권한이 없습니다.']);
-        }
-
         $postId = (int) sanitize_text_field($_POST['post_id'] ?? '');
         $post   = get_post($postId);
 
         if (!$postId || !$post || $post->post_status !== 'publish') {
             wp_send_json_error(['message' => '발행된 포스트만 뉴스레터로 만들 수 있습니다.']);
+        }
+
+        // 오브젝트 레벨 권한: 해당 포스트를 편집할 수 있고 publish_posts 이상이어야 함
+        if (!current_user_can('edit_post', $postId) || !current_user_can('publish_posts')) {
+            wp_send_json_error(['message' => '권한이 없습니다.']);
         }
 
         $result = CampaignManager::createOrUpdate($postId);

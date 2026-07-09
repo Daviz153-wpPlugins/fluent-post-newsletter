@@ -71,12 +71,19 @@ function fpnUpdateStatus(status, campaignUrl) {
 
     var statusText = document.getElementById('fpn-status-text');
     if (statusText) {
-        statusText.innerHTML = '<strong style="color:' + info.color + ';">' + info.label + '</strong>';
+        var strong = document.createElement('strong');
+        strong.style.color = info.color;
+        strong.textContent = info.label;
+        statusText.replaceChildren(strong);
     }
 
     var linkEl = document.getElementById('fpn-campaign-link');
     if (linkEl && campaignUrl) {
-        linkEl.innerHTML = '<a href="' + campaignUrl + '" target="_blank" style="color:#1d4ed8;">'
-            + 'FluentCRM에서 편집 →</a>';
+        var a = document.createElement('a');
+        a.href = campaignUrl;
+        a.target = '_blank';
+        a.style.color = '#1d4ed8';
+        a.textContent = 'FluentCRM에서 편집 →';
+        linkEl.replaceChildren(a);
     }
 }

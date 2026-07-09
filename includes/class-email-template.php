@@ -6,15 +6,19 @@ defined('ABSPATH') || exit;
 class EmailTemplate {
 
     public static function render(int $postId): string {
-        $post      = get_post($postId);
-        $title     = get_the_title($postId);
-        $postUrl   = get_permalink($postId);
-        $authorId  = $post->post_author;
-        $authorName = get_the_author_meta('display_name', $authorId);
-        $date      = get_the_date('Y년 n월 j일', $postId);
-        $siteName  = get_bloginfo('name');
-        $siteDesc  = get_bloginfo('description');
-        $thumbUrl  = get_the_post_thumbnail_url($postId, 'large');
+        $post = get_post($postId);
+        if (!$post) {
+            return '';
+        }
+
+        $title      = esc_html(get_the_title($postId));
+        $postUrl    = esc_url(get_permalink($postId));
+        $authorId   = $post->post_author;
+        $authorName = esc_html(get_the_author_meta('display_name', $authorId));
+        $date       = get_the_date('Y년 n월 j일', $postId);
+        $siteName   = esc_html(get_bloginfo('name'));
+        $siteDesc   = esc_html(get_bloginfo('description'));
+        $thumbUrl   = get_the_post_thumbnail_url($postId, 'large');
 
         $headerText = $siteDesc ? $siteName . ' | ' . $siteDesc : $siteName;
 
